@@ -160,7 +160,7 @@ impl<F: AsRawFd> Device<F> {
     }
 
     pub fn notifier_register(&self, target_category: u8, priority: i32) -> Result<()> {
-        let desc = uapi::NotifierDesc { target_category, priority };
+        let desc = uapi::NotifierDesc { priority, target_category };
 
         let result = unsafe { uapi::ssam_cdev_notif_register(self.file.as_raw_fd(), &desc as *const _) }
             .map_err(nix_to_io_err)
@@ -175,7 +175,7 @@ impl<F: AsRawFd> Device<F> {
     }
 
     pub fn notifier_unregister(&self, target_category: u8) -> Result<()> {
-        let desc = uapi::NotifierDesc { target_category, priority: 0 /* ignored */ };
+        let desc = uapi::NotifierDesc { priority: 0 /* ignored */, target_category };
 
         let result = unsafe { uapi::ssam_cdev_notif_unregister(self.file.as_raw_fd(), &desc as *const _) }
             .map_err(nix_to_io_err)
