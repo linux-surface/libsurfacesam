@@ -1,0 +1,9 @@
+[package]
+name = "ssam-tokio"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+futures = "0.3.15"
+ssam = { path = "../ssam", version = "0.1" }
+tokio = { version = "1.6.0", features = ["fs", "io-util"] }
