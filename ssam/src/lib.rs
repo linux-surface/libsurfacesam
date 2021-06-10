@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::ErrorKind;
+use std::io::{ErrorKind, Read};
 use std::os::unix::io::AsRawFd;
 use std::path::Path;
 
@@ -7,11 +7,14 @@ use tracing::trace;
 
 pub mod uapi;
 
+pub mod event;
+pub use event::{Event, EventStream};
+
 pub use std::io::Error as Error;
 pub use std::io::Result as Result;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Request {
     pub target_category: u8,
     pub target_id: u8,
@@ -99,6 +102,42 @@ impl<F: AsRawFd> Device<F> {
         } else {
             Err(Error::from_raw_os_error(status))
         }
+    }
+
+    pub fn notifier_register(&self, target_category: u8, priority: i32) -> Result<()> {
+        let desc = uapi::NotifierDesc { target_category, priority };
+
+        let result = unsafe { uapi::ssam_cdev_notif_register(self.file.as_raw_fd(), &desc as *const _) }
+            .map_err(nix_to_io_err)
+            .map(|_| ());
+
+        match result {
+            Ok(()) => trace!(target: "ssam::ioctl", "ssam_cdev_notif_register"),
+            Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_notif_register"),
+        }
+
+        result
+    }
+
+    pub fn notifier_unregister(&self, target_category: u8) -> Result<()> {
+        let desc = uapi::NotifierDesc { target_category, priority: 0 /* ignored */ };
+
+        let result = unsafe { uapi::ssam_cdev_notif_unregister(self.file.as_raw_fd(), &desc as *const _) }
+            .map_err(nix_to_io_err)
+            .map(|_| ());
+
+        match result {
+            Ok(()) => trace!(target: "ssam::ioctl", "ssam_cdev_notif_unregister"),
+            Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_notif_unregister"),
+        }
+
+        result
+    }
+}
+
+impl<F: AsRawFd + Read> Device<F> {
+    pub fn events(&mut self) -> std::io::Result<EventStream<F>> {
+        EventStream::from_device(self)
     }
 }
 
