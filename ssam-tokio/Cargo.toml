@@ -7,3 +7,6 @@ edition = "2018"
 futures = "0.3.15"
 ssam = { path = "../ssam", version = "0.1" }
 tokio = { version = "1.6.0", features = ["fs", "io-util"] }
+
+[dev-dependencies]
+tokio = { version = "1.6.0", features = ["fs", "io-util", "macros", "rt"] }
