@@ -3,6 +3,8 @@ use std::io::ErrorKind;
 use std::os::unix::io::AsRawFd;
 use std::path::Path;
 
+use tracing::trace;
+
 pub mod uapi;
 
 pub use std::io::Error as Error;
@@ -82,13 +84,20 @@ impl<F: AsRawFd> Device<F> {
             },
         };
 
-        unsafe { uapi::ssam_cdev_request(self.file.as_raw_fd(), &mut rqst as *mut _) }
-            .map_err(nix_to_io_err)?;
+        let result = unsafe { uapi::ssam_cdev_request(self.file.as_raw_fd(), &mut rqst as *mut _) }
+            .map_err(nix_to_io_err)
+            .map(|_| ());
 
-        if rqst.status >= 0 {
+        let status = rqst.status as i32;
+        match result {
+            Ok(()) => trace!(target: "ssam::ioctl", status=%status, "ssam_cdev_request"),
+            Err(ref e) => trace!(target: "ssam::ioctl", error=%e, status=%status, "ssam_cdev_request"),
+        }
+
+        if status >= 0 {
             Ok(rqst.response.length as usize)
         } else {
-            Err(Error::from_raw_os_error(rqst.status as i32))
+            Err(Error::from_raw_os_error(status))
         }
     }
 }

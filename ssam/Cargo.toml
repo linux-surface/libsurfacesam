@@ -6,3 +6,4 @@ edition = "2018"
 [dependencies]
 nix = "0.20.0"
 thiserror = "1.0.24"
+tracing = "0.1.26"
