@@ -8,3 +8,5 @@ Provides an interface for the `surface_aggregator_cdev` kernel module.
 The following crates are provided:
 - `ssam`: Main API wrapper.
 - `ssam-tokio`: [`tokio`][tokio] compatibility layer for asynchronous event handling.
+
+[tokio]: https://github.com/tokio-rs/tokio#tokio
