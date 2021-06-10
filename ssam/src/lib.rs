@@ -3,12 +3,14 @@ use std::io::{ErrorKind, Read};
 use std::os::unix::io::AsRawFd;
 use std::path::Path;
 
+use futures::AsyncRead;
+
 use tracing::trace;
 
 pub mod uapi;
 
 pub mod event;
-pub use event::{Event, EventStream};
+pub use event::{Event, EventStream, AsyncEventStream};
 
 pub use std::io::Error as Error;
 pub use std::io::Result as Result;
@@ -221,6 +223,12 @@ impl<F: AsRawFd> Device<F> {
 impl<F: AsRawFd + Read> Device<F> {
     pub fn events(&mut self) -> std::io::Result<EventStream<F>> {
         EventStream::from_device(self)
+    }
+}
+
+impl<F: AsRawFd + AsyncRead + Unpin> Device<F> {
+    pub fn events_async(&mut self) -> std::io::Result<AsyncEventStream<F>> {
+        AsyncEventStream::from_device(self)
     }
 }
 
