@@ -42,6 +42,30 @@ pub struct NotifierDesc {
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C, packed)]
+pub struct EventRegistry {
+    pub target_category: u8,
+    pub target_id: u8,
+    pub cid_enable: u8,
+    pub cid_disable: u8,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(C, packed)]
+pub struct EventId {
+    pub target_category: u8,
+    pub instance: u8,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(C, packed)]
+pub struct EventDesc {
+    pub reg: EventRegistry,
+    pub id: EventId,
+    pub flags: u8,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(C, packed)]
 pub struct EventHeader {
     pub target_category: u8,
     pub target_id: u8,
@@ -53,3 +77,5 @@ pub struct EventHeader {
 ioctl_readwrite!(ssam_cdev_request, 0xa5, 0x01, Request);
 ioctl_write_ptr!(ssam_cdev_notif_register, 0xa5, 0x02, NotifierDesc);
 ioctl_write_ptr!(ssam_cdev_notif_unregister, 0xa5, 0x03, NotifierDesc);
+ioctl_write_ptr!(ssam_cdev_event_enable, 0xa5, 0x04, EventDesc);
+ioctl_write_ptr!(ssam_cdev_event_disable, 0xa5, 0x05, EventDesc);

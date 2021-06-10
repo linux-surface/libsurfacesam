@@ -24,6 +24,59 @@ pub struct Request {
 }
 
 
+#[derive(Debug, Clone, Copy)]
+pub struct EventRegistry {
+    pub target_category: u8,
+    pub target_id: u8,
+    pub cid_enable: u8,
+    pub cid_disable: u8,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct EventId {
+    pub target_category: u8,
+    pub instance: u8,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct EventDescriptor {
+    pub reg: EventRegistry,
+    pub id: EventId,
+    pub flags: u8,
+}
+
+
+impl From<&EventRegistry> for uapi::EventRegistry {
+    fn from(reg: &EventRegistry) -> Self {
+        uapi::EventRegistry {
+            target_category: reg.target_category,
+            target_id: reg.target_id,
+            cid_enable: reg.cid_enable,
+            cid_disable: reg.cid_disable,
+        }
+    }
+}
+
+impl From<&EventId> for uapi::EventId {
+    fn from(id: &EventId) -> Self {
+        uapi::EventId {
+            target_category: id.target_category,
+            instance: id.instance,
+        }
+    }
+}
+
+impl From<&EventDescriptor> for uapi::EventDesc {
+    fn from(desc: &EventDescriptor) -> Self {
+        uapi::EventDesc {
+            reg: uapi::EventRegistry::from(&desc.reg),
+            id: uapi::EventId::from(&desc.id),
+            flags: desc.flags,
+        }
+    }
+}
+
+
 pub const DEFAULT_DEVICE_FILE_PATH: &str = "/dev/surface/aggregator";
 
 pub fn connect() -> Result<Device<File>> {
@@ -129,6 +182,36 @@ impl<F: AsRawFd> Device<F> {
         match result {
             Ok(()) => trace!(target: "ssam::ioctl", "ssam_cdev_notif_unregister"),
             Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_notif_unregister"),
+        }
+
+        result
+    }
+
+    pub fn event_enable(&self, desc: &EventDescriptor) -> Result<()> {
+        let d = uapi::EventDesc::from(desc);
+
+        let result = unsafe { uapi::ssam_cdev_event_enable(self.file.as_raw_fd(), &d as *const _) }
+            .map_err(nix_to_io_err)
+            .map(|_| ());
+
+        match result {
+            Ok(()) => trace!(target: "ssam::ioctl", "ssam_cdev_event_enable"),
+            Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_event_enable"),
+        }
+
+        result
+    }
+
+    pub fn event_disable(&self, desc: &EventDescriptor) -> Result<()> {
+        let d = uapi::EventDesc::from(desc);
+
+        let result = unsafe { uapi::ssam_cdev_event_disable(self.file.as_raw_fd(), &d as *const _) }
+            .map_err(nix_to_io_err)
+            .map(|_| ());
+
+        match result {
+            Ok(()) => trace!(target: "ssam::ioctl", "ssam_cdev_event_disable"),
+            Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_event_disable"),
         }
 
         result
