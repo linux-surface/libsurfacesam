@@ -143,7 +143,6 @@ impl<F: AsRawFd> Device<F> {
         };
 
         let result = unsafe { uapi::ssam_cdev_request(self.file.as_raw_fd(), &mut rqst as *mut _) }
-            .map_err(nix_to_io_err)
             .map(|_| ());
 
         let status = rqst.status as i32;
@@ -163,7 +162,6 @@ impl<F: AsRawFd> Device<F> {
         let desc = uapi::NotifierDesc { priority, target_category };
 
         let result = unsafe { uapi::ssam_cdev_notif_register(self.file.as_raw_fd(), &desc as *const _) }
-            .map_err(nix_to_io_err)
             .map(|_| ());
 
         match result {
@@ -171,14 +169,13 @@ impl<F: AsRawFd> Device<F> {
             Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_notif_register"),
         }
 
-        result
+        Ok(result?)
     }
 
     pub fn notifier_unregister(&self, target_category: u8) -> Result<()> {
         let desc = uapi::NotifierDesc { priority: 0 /* ignored */, target_category };
 
         let result = unsafe { uapi::ssam_cdev_notif_unregister(self.file.as_raw_fd(), &desc as *const _) }
-            .map_err(nix_to_io_err)
             .map(|_| ());
 
         match result {
@@ -186,14 +183,13 @@ impl<F: AsRawFd> Device<F> {
             Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_notif_unregister"),
         }
 
-        result
+        Ok(result?)
     }
 
     pub fn event_enable(&self, desc: &EventDescriptor) -> Result<()> {
         let d = uapi::EventDesc::from(desc);
 
         let result = unsafe { uapi::ssam_cdev_event_enable(self.file.as_raw_fd(), &d as *const _) }
-            .map_err(nix_to_io_err)
             .map(|_| ());
 
         match result {
@@ -201,14 +197,13 @@ impl<F: AsRawFd> Device<F> {
             Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_event_enable"),
         }
 
-        result
+        Ok(result?)
     }
 
     pub fn event_disable(&self, desc: &EventDescriptor) -> Result<()> {
         let d = uapi::EventDesc::from(desc);
 
         let result = unsafe { uapi::ssam_cdev_event_disable(self.file.as_raw_fd(), &d as *const _) }
-            .map_err(nix_to_io_err)
             .map(|_| ());
 
         match result {
@@ -216,7 +211,7 @@ impl<F: AsRawFd> Device<F> {
             Err(ref e) => trace!(target: "ssam::ioctl", error=%e, "ssam_cdev_event_disable"),
         }
 
-        result
+        Ok(result?)
     }
 }
 
@@ -235,15 +230,5 @@ impl<F: AsRawFd + AsyncRead + Unpin> Device<F> {
 impl<F> From<F> for Device<F> {
     fn from(file: F) -> Self {
         Self::new(file)
-    }
-}
-
-
-fn nix_to_io_err(err: nix::Error) -> std::io::Error {
-    match err {
-        nix::Error::Sys(errno)           => Error::from_raw_os_error(errno as i32),
-        nix::Error::InvalidPath          => Error::new(ErrorKind::InvalidInput, err),
-        nix::Error::InvalidUtf8          => Error::new(ErrorKind::InvalidData, err),
-        nix::Error::UnsupportedOperation => Error::new(ErrorKind::Other, err),
     }
 }
