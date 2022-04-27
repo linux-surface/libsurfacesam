@@ -1,11 +1,11 @@
 [package]
 name = "ssam-tokio"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 
 [dependencies]
 futures = "0.3.21"
-ssam = { path = "../ssam", version = "0.1" }
+ssam = { path = "../ssam", version = "0.1.1" }
 tokio = { version = "1.18.0", features = ["fs", "io-util"] }
 
 [dev-dependencies]
