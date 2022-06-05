@@ -1,7 +1,7 @@
 use ssam::Request;
 
 fn main() -> ssam::Result<()> {
-	let request = Request {
+    let request = Request {
         target_category: 0x01,
         target_id: 0x01,
         command_id: 0x13,
