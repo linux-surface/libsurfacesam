@@ -136,7 +136,7 @@ impl<F: AsRawFd> Device<F> {
                 __pad: [0; 6],
             },
             response: uapi::RequestResponse {
-                data: if response.is_empty() { 0 } else { response.as_ptr() as u64 },
+                data: if response.is_empty() { 0 } else { response.as_mut_ptr() as u64 },
                 length: response.len().min(std::u16::MAX as usize) as u16,
                 __pad: [0; 6],
             },
