@@ -119,7 +119,7 @@ impl Device<File> {
 
 impl<F: AsRawFd> Device<F> {
     pub fn request(&self, desc: &Request, payload: &[u8], response: &mut [u8]) -> Result<usize> {
-        if payload.len() > std::u16::MAX as usize {
+        if payload.len() > u16::MAX as usize {
             return Err(Error::from(ErrorKind::InvalidInput));
         }
 
@@ -137,7 +137,7 @@ impl<F: AsRawFd> Device<F> {
             },
             response: uapi::RequestResponse {
                 data: if response.is_empty() { 0 } else { response.as_mut_ptr() as u64 },
-                length: response.len().min(std::u16::MAX as usize) as u16,
+                length: response.len().min(u16::MAX as usize) as u16,
                 __pad: [0; 6],
             },
         };
