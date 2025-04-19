@@ -31,7 +31,7 @@ impl<'a, F: AsRawFd + Read> EventStream<'a, F> {
     }
 }
 
-impl<'a, F: AsRawFd + Read> EventStream<'a, F> {
+impl<F: AsRawFd + Read> EventStream<'_, F> {
     pub fn read_next_blocking(&mut self) -> Result<Event> {
         let mut buf_hdr = [0; std::mem::size_of::<uapi::EventHeader>()];
         let mut buf_data = Vec::new();
@@ -53,7 +53,7 @@ impl<'a, F: AsRawFd + Read> EventStream<'a, F> {
     }
 }
 
-impl<'a, F: AsRawFd + Read> Iterator for EventStream<'a, F> {
+impl<F: AsRawFd + Read> Iterator for EventStream<'_, F> {
     type Item = Result<Event>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -75,7 +75,7 @@ impl<'a, F: AsRawFd + AsyncRead + Unpin> AsyncEventStream<'a, F> {
     }
 }
 
-impl<'a, F: AsRawFd + AsyncRead + Unpin> AsyncEventStream<'a, F> {
+impl<F: AsRawFd + AsyncRead + Unpin> AsyncEventStream<'_, F> {
     pub async fn read_next(&mut self) -> std::io::Result<Event> {
         const HEADER_LEN: usize = std::mem::size_of::<uapi::EventHeader>();
 
@@ -105,7 +105,7 @@ impl<'a, F: AsRawFd + AsyncRead + Unpin> AsyncEventStream<'a, F> {
     }
 }
 
-impl<'a, F: AsRawFd + AsyncRead + Unpin> Stream for AsyncEventStream<'a, F> {
+impl<F: AsRawFd + AsyncRead + Unpin> Stream for AsyncEventStream<'_, F> {
     type Item = std::io::Result<Event>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
