@@ -4,9 +4,9 @@ version = "0.1.3"
 edition = "2018"
 
 [dependencies]
-futures = "0.3.30"
+futures = "0.3.31"
 ssam = { path = "../ssam", version = "0.1.3" }
-tokio = { version = "1.40.0", features = ["fs", "io-util"] }
+tokio = { version = "1.44.2", features = ["fs", "io-util"] }
 
 [dev-dependencies]
-tokio = { version = "1.40.0", features = ["fs", "io-util", "macros", "rt"] }
+tokio = { version = "1.44.2", features = ["fs", "io-util", "macros", "rt"] }
