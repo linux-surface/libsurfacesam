@@ -216,13 +216,13 @@ impl<F: AsRawFd> Device<F> {
 }
 
 impl<F: AsRawFd + Read> Device<F> {
-    pub fn events(&mut self) -> std::io::Result<EventStream<F>> {
+    pub fn events(&'_ mut self) -> std::io::Result<EventStream<'_, F>> {
         EventStream::from_device(self)
     }
 }
 
 impl<F: AsRawFd + AsyncRead + Unpin> Device<F> {
-    pub fn events_async(&mut self) -> std::io::Result<AsyncEventStream<F>> {
+    pub fn events_async(&'_ mut self) -> std::io::Result<AsyncEventStream<'_, F>> {
         AsyncEventStream::from_device(self)
     }
 }
